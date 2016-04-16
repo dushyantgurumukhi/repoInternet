@@ -113,7 +113,7 @@
 	<cffunction name="getAllCustomerUserID" access="remote">
 		<cfargument name="term" default="">
 		<cfquery name="getAllUserID" datasource="repointernet">
-			select user_id from customer_master where lower(user_id) like '%#trim(arguments.term)#%' and status = 'Y'
+			select user_id from customer_master where user_id like '%#trim(arguments.term)#%' and status = 'Y'
 		</cfquery>
 		<cfset myArray = queryToArray(passedQuery=getAllUserID)>
 		<cfreturn myArray>
@@ -205,6 +205,73 @@
 				</cfif> --->	
 			</cfif>
 		</cftransaction>
+	</cffunction>
+	
+	<cffunction name="getCustomerActivePackage" access="remote" returntype="any" returnformat="plain" output="yes">
+		<cfargument name="userid" default="" required="yes">
+		<cfset assignPackage="notassign">
+		<cfquery name="getAssignQuery" datasource="repointernet">
+			select 'assign' as user_id,pa.package_name,pa.package_price,pa.package_id,pa.package_duration from customer_package_detail cpd, package_admin pa
+  			where pa.package_id = cpd.package_id
+  			and cpd.user_id = '#arguments.userid#'
+	        and current_pack_active = 'Y'
+		</cfquery>
+		
+		<cfif getAssignQuery.recordcount gt 0>
+			<cfquery name="getPackageRenewDetail" datasource="repointernet">
+				 select last_pack_exp_date,user_id from customer_package_renew where user_id = '#arguments.userid#' and entry_active = 'Y'
+			</cfquery>
+			<cfset lastPackExpDate = ArrayNew(1)>
+			<cfset lastPackExpDate[1] = getPackageRenewDetail.last_pack_exp_date>
+			<cfset queryAddColumn(getAssignQuery,"last_pack_exp_date","string",lastPackExpDate)>
+		<cfelse>
+			<cfquery name="getAssignQuery" datasource="repointernet">
+				select 'notassign' as user_id, '' as package_name,'' as package_price, '' as last_pack_exp_date,'' as package_id,'' as package_duration from dual
+			</cfquery>	
+		</cfif>
+		<cfset assignPackage = serializeJSON(getAssignQuery)>
+		<cfreturn assignPackage>
+	</cffunction>
+	
+	<cffunction name="insertRenewPackage" access="remote" returntype="any" returnformat="plain" output="yes">
+		<cfargument name="form" default="">
+		<cfset formValues = deserializeJSON(arguments.form)>
+		<cfif isDefined("session.userid")>
+			<cfset updated_by = session.userid>
+		<cfelse>
+			<cfset updated_by = "admin">
+		</cfif>
+		
+			<!--- "userid":$('#userid').val(),
+			"package_id":$('#hid_total_amount').val(),
+			"last_pack_exp_date":$('#hidden_packageLastExpiredDate').val(),
+			"pack_renew_date":$('#package_renew_date').val(),
+			"curr_pack_exp_date":$('#hidden_packageCurrExpiredDate').val() 
+			concat('',curr_pack_exp_date)
+			
+			--->
+
+
+		<cftransaction>
+			<cfquery name="getActivePackage" datasource="repointernet">
+				select curr_pack_exp_date as curr_pack_exp_date from customer_package_renew where user_id = '#formValues.userid#' and entry_active = 'Y'
+			</cfquery>
+			
+			<cfset lastExpDate = "">
+			<cfif getActivePackage.recordcount gt 0>
+				<cfset lastExpDate = dateformat(getActivePackage.curr_pack_exp_date,"mm/dd/yyyy") >
+			</cfif>
+			
+			<cfquery name="inactivePackageEntry" datasource="repointernet">
+				update customer_package_renew set entry_active = 'N' where user_id = '#formValues.userid#'
+			</cfquery>
+			<cfquery name="insertCollectionRecord" datasource="repointernet">
+				insert into customer_package_renew (user_id,package_id,last_pack_exp_date,pack_renew_date,curr_pack_exp_date,entry_active,updated_by,updated_date)
+				values
+				('#formValues.userid#','#formValues.package_id#',<cfif lastExpDate neq "">str_to_date('#lastExpDate#', '%m/%d/%Y')<cfelse>null</cfif>,str_to_date('#formValues.pack_renew_date#', '%m/%d/%Y'),str_to_date('#formValues.curr_pack_exp_date#', '%m/%d/%Y'),'Y','#updated_by#',sysdate())
+			</cfquery>
+		</cftransaction>
+		
 	</cffunction>
 	
 </cfcomponent>
