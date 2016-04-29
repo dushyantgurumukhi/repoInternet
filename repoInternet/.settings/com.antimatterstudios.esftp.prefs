@@ -1,0 +1,12 @@
+Create\ Empty\ Directories=true
+Password=admin
+Recurse\ Subdirectories=true
+Save\ Password=true
+Site\ Root=
+Username=admin
+eclipse.preferences.version=1
+port=21
+protocol=1
+server=127.0.0.1
+timeout=30
+verified=false
