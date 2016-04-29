@@ -219,11 +219,36 @@
 		
 		<cfif getAssignQuery.recordcount gt 0>
 			<cfquery name="getPackageRenewDetail" datasource="repointernet">
-				 select last_pack_exp_date,user_id from customer_package_renew where user_id = '#arguments.userid#' and entry_active = 'Y'
+				 select last_pack_exp_date,curr_pack_exp_date,user_id from customer_package_renew where user_id = '#arguments.userid#' and entry_active = 'Y'
 			</cfquery>
 			<cfset lastPackExpDate = ArrayNew(1)>
-			<cfset lastPackExpDate[1] = getPackageRenewDetail.last_pack_exp_date>
-			<cfset queryAddColumn(getAssignQuery,"last_pack_exp_date","string",lastPackExpDate)>
+			<cfset currPackExpDate = ArrayNew(1)>
+			<cfset nowDateToJS = ArrayNew(1)>
+			<cfset renewPackage = ArrayNew(1)>
+			
+			<cfset dateout = dateFormat(getPackageRenewDetail.last_pack_exp_date,"mm/dd/yyyy")>
+			<cfset packExpDate = getPackageRenewDetail.last_pack_exp_date>
+			<cfset nowDate = dateFormat(now(),"mm/dd/yyyy")>
+			<cfset curPackDate = dateFormat(getPackageRenewDetail.curr_pack_exp_date,"mm/dd/yyyy")>
+			
+			<cfset lastPackExpDate[1] = dateout>
+			<cfset nowDateToJS[1] = nowDate>
+			<cfset currPackExpDate[1] = curPackDate>
+			
+			<cfif nowDate gte dateout>
+				<cfset renewPackage[1] = "renew">
+			<cfelse>
+				<cfset renewPackage[1] = "norenew">	
+			</cfif>
+			
+			<cfif dateout eq "">
+				<cfset queryAddColumn(getAssignQuery,"last_pack_exp_date","string",currPackExpDate)>
+			<cfelse>
+				<cfset queryAddColumn(getAssignQuery,"last_pack_exp_date","string",lastPackExpDate)>	
+			</cfif>
+			<cfset queryAddColumn(getAssignQuery,"nowDateToJS","string",nowDateToJS)>
+			<cfset queryAddColumn(getAssignQuery,"renewPackage","string",renewPackage)>
+			
 		<cfelse>
 			<cfquery name="getAssignQuery" datasource="repointernet">
 				select 'notassign' as user_id, '' as package_name,'' as package_price, '' as last_pack_exp_date,'' as package_id,'' as package_duration from dual
@@ -242,16 +267,6 @@
 			<cfset updated_by = "admin">
 		</cfif>
 		
-			<!--- "userid":$('#userid').val(),
-			"package_id":$('#hid_total_amount').val(),
-			"last_pack_exp_date":$('#hidden_packageLastExpiredDate').val(),
-			"pack_renew_date":$('#package_renew_date').val(),
-			"curr_pack_exp_date":$('#hidden_packageCurrExpiredDate').val() 
-			concat('',curr_pack_exp_date)
-			
-			--->
-
-
 		<cftransaction>
 			<cfquery name="getActivePackage" datasource="repointernet">
 				select curr_pack_exp_date as curr_pack_exp_date from customer_package_renew where user_id = '#formValues.userid#' and entry_active = 'Y'

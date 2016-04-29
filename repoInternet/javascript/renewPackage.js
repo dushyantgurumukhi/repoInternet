@@ -36,13 +36,26 @@ function checkRenew()
 						                      response = JSON.parse(response)
 						                      if((response.DATA.length > 0))
 						                      {
-						                      	var assignFlag = response.DATA[0][0];
-						                      	var package_name = response.DATA[0][1];
-						                      	var package_price = response.DATA[0][2];
-						                      	var package_id = response.DATA[0][3];
-						                      	var last_pack_exp_date = response.DATA[0][5];
-						                      	var package_duration = response.DATA[0][4];
-						                      	var packageRenewDate = $('#package_renew_date').val();
+												
+												var assignFlag = "";
+						                      	var package_name = "";
+						                      	var package_price = "";
+						                      	var package_id = "";
+						                      	var last_pack_exp_date = "";
+						                      	var nowDateToJS = "";
+						                      	var renewPackage = "";
+						                      	var package_duration = "";
+						                      	var packageRenewDate = "";
+						                      							                      	
+						                      	assignFlag = response.DATA[0][0];
+												package_name = response.DATA[0][1];
+												package_price = response.DATA[0][2];
+												package_id = response.DATA[0][3];
+												last_pack_exp_date = response.DATA[0][5];
+												nowDateToJS = response.DATA[0][6];
+												renewPackage = response.DATA[0][7];
+												package_duration = response.DATA[0][4];
+												packageRenewDate = $('#package_renew_date').val();
 						                      	
 						                      	if(assignFlag == 'notassign')
 						                      	{
@@ -54,14 +67,79 @@ function checkRenew()
 						                      	}
 						                      	else
 						                      	{
-						                      		$("#success_span").css('visibility', 'hidden');
-													$("#renew_div").css('visibility', 'visible');
-													$('#package_assigned').val('Package assigned - ' + package_name);
-													$('#package_cost').val('Package cost - Rs. ' + package_price);
-													$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
-													$('#hidden_packageId').val(""+ package_id);
-													$('#hidden_packageRenewDate').val("" + packageRenewDate);
-													$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+						                      		
+						                      		if(last_pack_exp_date=="")
+						                      		{
+						                      			$("#success_span").css('visibility', 'hidden');
+														$("#renew_div").css('visibility', 'visible');
+														$('#package_assigned').val('Package assigned - ' + package_name);
+														$('#package_cost').val('Package cost - Rs. ' + package_price);
+														$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
+														$('#hidden_packageId').val(""+ package_id);
+														$('#hidden_packageRenewDate').val("" + packageRenewDate);
+														$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+														$('#btn_renew_package').prop('disabled',false);
+														$("#package_renew_date").removeAttr("disabled");
+						                      		}
+						                      		else if(renewPackage == "renew")
+						                      		{
+						                      			$("#success_span").css('visibility', 'hidden');
+														$("#renew_div").css('visibility', 'visible');
+														$('#package_assigned').val('Package assigned - ' + package_name);
+														$('#package_cost').val('Package cost - Rs. ' + package_price);
+														$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
+														$('#hidden_packageId').val(""+ package_id);
+														$('#hidden_packageRenewDate').val("" + packageRenewDate);
+														$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+						                      		}
+						                      		else
+						                      		{
+						                      			//$("#renew_div").css('visibility', 'hidden');
+														$("#success_span").css('visibility', 'visible');
+														$("#success_span").attr('class', 'label label-danger');
+														$("#id_label_msg").empty();
+														$("#id_label_msg").append("Package still Active.");
+														
+														$("#renew_div").css('visibility', 'visible');
+														$('#package_assigned').val('Package assigned - ' + package_name);
+														$('#package_cost').val('Package cost - Rs. ' + package_price);
+														$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
+														$('#hidden_packageId').val(""+ package_id);
+														$('#hidden_packageRenewDate').val("" + packageRenewDate);
+														$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+														
+														$('#btn_renew_package').prop('disabled',true);
+														$("#package_renew_date").attr("disabled", "disabled"); 
+						                      		}
+						                      		
+						                      		/*
+						                      		if(last_pack_exp_date == nowDateToJS)
+						                      		{
+						                      			$("#success_span").css('visibility', 'hidden');
+														$("#renew_div").css('visibility', 'visible');
+														$('#package_assigned').val('Package assigned - ' + package_name);
+														$('#package_cost').val('Package cost - Rs. ' + package_price);
+														$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
+														$('#hidden_packageId').val(""+ package_id);
+														$('#hidden_packageRenewDate').val("" + packageRenewDate);
+														$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+						                      		}
+						                      		else if(last_pack_exp_date=="")
+						                      		{
+						                      			$("#success_span").css('visibility', 'hidden');
+														$("#renew_div").css('visibility', 'visible');
+														$('#package_assigned').val('Package assigned - ' + package_name);
+														$('#package_cost').val('Package cost - Rs. ' + package_price);
+														$('#package_exp_date').val('Package expired date - ' + last_pack_exp_date);
+														$('#hidden_packageId').val(""+ package_id);
+														$('#hidden_packageRenewDate').val("" + packageRenewDate);
+														$('#hidden_packageLastExpiredDate').val("" + last_pack_exp_date);
+														$('#btn_renew_package').prop('disabled',false);
+														$("#package_renew_date").removeAttr("disabled");
+						                      		}
+						                      		*/
+						                      		
+
 													if(package_duration == "")
 													{
 														package_duration = 30;
@@ -80,6 +158,34 @@ function checkRenew()
 						  });
 	}	
 }
+
+
+function checkDate(chkDate) 
+{
+    
+    
+    var EnteredDate = chkDate; //for javascript
+
+    //var EnteredDate = $("#txtdate").val(); // For JQuery
+
+    var date = EnteredDate.substring(0, 2);
+    var month = EnteredDate.substring(3, 5);
+    var year = EnteredDate.substring(6, 10);
+
+    var myDate = new Date(year, month - 1, date);
+
+    var today = new Date();
+	alert(" myDate " + myDate + "\n" + " today : " + today);
+	
+	
+    if (myDate == today) {
+        alert("Entered date is greater than today's date ");
+    }
+    else {
+        alert("Entered date is less than today's date ");
+    }
+}
+
 function renewPackage()
 {
 	var validateFields = validation();
@@ -93,7 +199,7 @@ function renewPackage()
 						"curr_pack_exp_date":$('#hidden_packageCurrExpiredDate').val()
            			  };
            			  
-           			  document.getElementById("success_span").innerHTML = '<img src="../images/loader.gif" />';
+           			  //document.getElementById("success_span").innerHTML = '<img src="../images/loader.gif" />';
 					  $.get('../com/customer.cfc?linkid='+Math.random()+'&method=insertRenewPackage&form=' + JSON.stringify(JSONObj),
 					  function(data){
 						if($.trim(data) != '')
